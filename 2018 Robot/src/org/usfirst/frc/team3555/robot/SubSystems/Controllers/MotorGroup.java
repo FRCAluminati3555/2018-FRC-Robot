@@ -5,21 +5,9 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 
 public class MotorGroup {
 	/**
-	 * All the different ways to interpret joystick input
-	 */
-	public static enum DriveMode {
-		ArcadeDrive, TankDrive;
-	}
-	
-	/**
 	 * Controllers for the two sides
 	 */
 	private CANTalon left, right;
-	
-	/**
-	 * What control mode to use for interpreting joystick input
-	 */
-	private DriveMode currentDriveMode;
 	
 	/**
 	 * Variables to scale the motor output
@@ -27,11 +15,21 @@ public class MotorGroup {
 	 */
 	private double scaleFactor, scaleFactorMinimum;
 	
+	/**
+	 * These tell whether or not the set point should be negated, this allows a drive trian to not conflict when driving straight
+	 */
+	private int invertLeftPoint = 1, invertRightPoint = 1;
+	
+	/**
+	 * Tells whether or not the left and right should swap values when the set point is given
+	 */
+	private boolean swap;
+	
 	public MotorGroup(int idLeft, int idRight) {
 		left = new CANTalon(idLeft);
 		right = new CANTalon(idRight);
 		
-		currentDriveMode = DriveMode.ArcadeDrive;
+		scaleFactor = 1;
 	}
 
 	//***************************** Delegate Methods For The CANTalons *****************************  
@@ -71,8 +69,14 @@ public class MotorGroup {
 	 * @param rightSetPoint -> SetPoint for the right side controller
 	 */
 	public void set(double leftSetPoint, double rightSetPoint) {
-		left.set(leftSetPoint);
-		right.set(rightSetPoint);
+		
+		if(!swap) {
+			left.set(leftSetPoint * scaleFactor * invertLeftPoint);
+			right.set(rightSetPoint * scaleFactor * invertRightPoint);
+		} else {
+			left.set(rightSetPoint * scaleFactor * invertLeftPoint);
+			right.set(leftSetPoint * scaleFactor * invertRightPoint);
+		}
 	}
 
 	/**
@@ -175,6 +179,26 @@ public class MotorGroup {
 	public void invertRight(boolean inverted) { right.setInverted(inverted); }
 	
 	/**
+	 * Tell whether or not the set point should be negated (* -1).
+	 * This would be used on one side of a drive train to make them go in the same direction.
+	 * 
+	 * @param negate - Whether or not the set point should be negated
+	 */
+	public void negateLeftSetPoint(boolean negate) {
+		invertLeftPoint = negate == true ? -1 : 1;
+	}
+	
+	/**
+	 * Tell whether or not the set point should be negated (* -1).
+	 * This would be used on one side of a drive train to make them go in the same direction.
+	 * 
+	 * @param negate - Whether or not the set point should be negated
+	 */
+	public void negateRightSetPoint(boolean negate) {
+		invertRightPoint = negate == true ? -1 : 1;
+	}
+	
+	/**
 	 * Set the PID values of the Left Side controller
 	 * 
 	 * @param p -> Proportional value
@@ -215,34 +239,6 @@ public class MotorGroup {
 	//***************************** Interpret Data *****************************
 
 	/**
-	 * Interpret the x and y axis positions to create an arcade drive control scheme  
-	 * Be sure to invert the motor properly to avoid breaking a gearbox or two
-	 * 
-	 * @param xAxis -> Value of the xAxis, for instance the position of the joystick on the xAxis
-	 * @param yAxis -> Value of the yxAxis, for instance the position of the joystick on the yAxis
-	 */
-	public void arcadeDrive(double xAxis, double yAxis) {
-		double leftSpeed = yAxis + xAxis;
-    	double rightSpeed = yAxis - xAxis;
-    	
-    	set(leftSpeed * scaleFactor, rightSpeed * scaleFactor);
-	}
-	
-	/**
-	 * Interpret y axis positions to create a tank drive control scheme  
-	 * Be sure to invert the motor properly to avoid breaking a gearbox or two
-	 * 
-	 * @param leftYAxis -> Value of the left y axis, for instance the position of the left joystick on the yAxis
-	 * @param rightYAxis -> Value of the right y axis, for instance the position of the right joystick on the yAxis
-	 */
-	public void tankDrive(double leftYAxis, double rightYAxis) {
-		double leftSpeed = leftYAxis;
-		double rightSpeed = rightYAxis;
-		
-		set(leftSpeed * scaleFactor, rightSpeed * scaleFactor);
-	}
-	
-	/**
 	 * Dictate the factor to scale the motor output by. This is on a scale of 0 -> 1
 	 * @param scaleFactor -> Amount to multiply motor output by
 	 */
@@ -259,14 +255,12 @@ public class MotorGroup {
 	public void setScaleFactorMinimum(double minimum) { this.scaleFactorMinimum = minimum; }
 	
 	/**
-	 * @return -> The current drive mode that is stored
+	 * Swaps the left and the right set points when supplied
+	 * This method will negate the current state of swap 
 	 */
-	public DriveMode getCurrentDriveMode() { return currentDriveMode; }
-	
-	/**
-	 * @param driveMode -> Drive Mode to store
-	 */
-	public void setDriveMode(DriveMode driveMode) { this.currentDriveMode = driveMode; }
+	public void swap() {
+		swap = !swap;
+	}
 	
 	//***************************** Getters *****************************
 	
@@ -282,5 +276,5 @@ public class MotorGroup {
 	 * 
 	 * @return -> The motor controller that controls the right side
 	 */
-	public CANTalon getRightcontroller() { return right; }
+	public CANTalon getRightController() { return right; }
 }
