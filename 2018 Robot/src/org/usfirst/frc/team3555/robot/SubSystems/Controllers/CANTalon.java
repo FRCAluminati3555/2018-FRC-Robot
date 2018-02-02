@@ -104,6 +104,8 @@ public class CANTalon extends WPI_TalonSRX {
 		set(0);
 		setPIDF(0);
 		
+		setInverted(false);
+		
 		setCoast();
 		setSensorUnitsPerRotation(0);
 	}

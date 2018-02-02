@@ -8,16 +8,40 @@ public class CurvedJoystick extends Joystick {
 	
 	private double deadzone; 
 	
+	/**
+	 * Joystick class that will put a min cap with the deadzone. 
+	 * Also it can curve the input with an exponent.
+	 * 
+	 * @param port -> USB Port for the joystick 
+	 * @param deadzone -> The small zone around joystick that prevents small values like .0047 from being applied to the motor 
+	 */
 	public CurvedJoystick(int port, double deadzone) {
 		super(port);
 		this.deadzone = deadzone;
 	}
 
+	/**
+	 * Joystick class that will put a min cap with the deadzone. 
+	 * Also it can curve the input with an exponent.
+	 * 
+	 * NOTE: This will use the default deadzone as specified by the static member of this class: defaultDeadzone
+	 * 
+	 * @param port -> USB Port for the joystick 
+	 */
 	public CurvedJoystick(int port) {
 		this(port, defaultDeadzone);
 	}
 	
+	/**
+	 * @return -> The input of the x-axis raised to the default exponent
+	 */
 	public double getCurvedX() { return getCurvedX(defaultExponent); }
+	
+	/**
+	 * 
+	 * @param exponent -> The exponent to raise the x-axis value by
+	 * @return -> The input of the x-axis raised to the exponent
+	 */
 	public double getCurvedX(double exponent) {
 		return curveData(getX(), exponent);
 	}

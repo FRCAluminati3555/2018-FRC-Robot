@@ -3,8 +3,6 @@ package org.usfirst.frc.team3555.robot.SubSystems;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CANTalon;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CurvedJoystick;
 
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-
 public class Climber extends SubSystem {
 	private CurvedJoystick joyOp;
 	private CANTalon climber;

@@ -48,6 +48,10 @@ public class CurvedXboxController extends XboxController {
 		return capDeadzone(getY(hand));
 	}
 	
+	public double getRawTrigger(Hand hand) {
+		return capDeadzone(getTriggerAxis(hand));
+	}
+	
 	private double curveData(double data, double exponent) {
 		return capDeadzone(data > 0 ? Math.pow(data, exponent) : -Math.pow(Math.abs(data), exponent));
 	}
