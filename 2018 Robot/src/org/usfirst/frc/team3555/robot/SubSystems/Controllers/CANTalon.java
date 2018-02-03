@@ -2,6 +2,7 @@ package org.usfirst.frc.team3555.robot.SubSystems.Controllers;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
@@ -79,6 +80,22 @@ public class CANTalon extends WPI_TalonSRX {
 		return distance / distancePerRotation;
 	}
 	
+	/**
+	 * Distance / DistancePerRotation  = Rotations * 60 seconds = Rotations 
+	 * Seconds                           Seconds      1 minute     minute
+	 */
+	public static double linearVelocityToRPM(double linearVelocity, double distancePerRotation) {
+		return (linearVelocity / distancePerRotation) * 60;
+	}
+	
+	/**
+	 * Rotations * distancePerRotation = distance * 1 minute  = distance 
+	 * Minute                            Minute     60 seconds  seconds
+	 */
+	public static double rpmToLinearVelocity(double rpm, double distancePerRotation) {
+		return (rpm * distancePerRotation) / 60.0;
+	}
+	
 	private boolean enabled;
 	private double p, i, d, f;
 	private double setPoint;
@@ -104,10 +121,9 @@ public class CANTalon extends WPI_TalonSRX {
 		set(0);
 		setPIDF(0);
 		
-		setInverted(false);
-		
 		setCoast();
 		setSensorUnitsPerRotation(0);
+		setInverted(false);
 	}
 	
 	public CANTalon(String name, int deviceNumber) {
@@ -122,26 +138,30 @@ public class CANTalon extends WPI_TalonSRX {
 	public void set(double setPoint) {
 		this.setPoint = setPoint;
 		
-		if(enabled) 
+		if(enabled) {
+			if(controlMode == ControlMode.Velocity) {
+				if(feedbackDevice == FeedbackDevice.QuadEncoder || feedbackDevice == FeedbackDevice.CTRE_MagEncoder_Relative)
+					super.set(controlMode, quadRPMToNative(setPoint, sensorUnitsPerRotation));
+				else
+					super.set(controlMode, rpmToNative(setPoint, sensorUnitsPerRotation));
+			} else if(controlMode == ControlMode.Position) {
+				if(feedbackDevice == FeedbackDevice.QuadEncoder || feedbackDevice == FeedbackDevice.CTRE_MagEncoder_Relative)
+					super.set(controlMode, quadRotationsToNative(setPoint, sensorUnitsPerRotation));
+				else
+					super.set(controlMode, rotationsToNative(setPoint, sensorUnitsPerRotation));
+			}
 			super.set(controlMode, setPoint);
+		}
 	}
 	
 	public void setVelocityRPM(double rpm) {
 		setControlMode(ControlMode.Velocity);
-		
-		if(feedbackDevice == FeedbackDevice.QuadEncoder)
-			set(quadRPMToNative(rpm, sensorUnitsPerRotation));
-		else 
-			set(rpmToNative(rpm, sensorUnitsPerRotation));
+		set(rpm);
 	}
 	
 	public void setPositionRotations(double rotations) {
 		setControlMode(ControlMode.Position);
-		
-		if(feedbackDevice == FeedbackDevice.QuadEncoder) 
-			set(quadRotationsToNative(rotations, sensorUnitsPerRotation));
-		else
-			set(rotationsToNative(rotations, sensorUnitsPerRotation));
+		set(rotations);
 	}
 	
 	public void setPositionDistance(double distance) {
@@ -232,6 +252,12 @@ public class CANTalon extends WPI_TalonSRX {
 		return 0;
 	}
 	
+	public double getLinearVelocity() {
+		if(distancePerRotation != 0) 
+			return rpmToLinearVelocity(getVelocityRPM(), distancePerRotation);
+		return 0;
+	}
+	
 	public double getPositionRotations() { 
 		if(sensorUnitsPerRotation != 0) {
 			if(feedbackDevice == FeedbackDevice.QuadEncoder) 
@@ -241,14 +267,35 @@ public class CANTalon extends WPI_TalonSRX {
 		return 0;
 	}
 	
-	public double getPositionDistance() {
+	public double getPositionLinearDistance() {
 		if(distancePerRotation != 0) 
 			return rotationsToDistance(getPositionRotations(), distancePerRotation);
 		return 0;
 	}
 	
 	public double getNativeVelocity() { return getSelectedSensorVelocity(kPidIdx); }
-	public double getNativePosition() { return getSelectedSensorPosition(kPidIdx); }
+	public double getNativePosition() { return getSelectedSensorPosition(kPidIdx); } 
+	
+	public int getAnalogInNativeVelocity() { return getSensorCollection().getAnalogInVel(); }
+	public double getAnalogInRPMVelocity() { return nativeToRPM(getAnalogInNativeVelocity(), 1024); }
+	
+	public int getAnalogInNativePosition() { return getSensorCollection().getAnalogIn(); }
+	public double getAnalogInRotationPosition() { return nativeToRotations(getAnalogInNativePosition(), 4096); }
 	
 	public void setSensorPosition(int sensorPos) { setSelectedSensorPosition(sensorPos, kPidIdx, kTimeoutMs); }
+
+	public void setForwardSoftLimitRotations(double rotations) {
+		if(feedbackDevice == FeedbackDevice.QuadEncoder)
+			configForwardSoftLimitThreshold((int) quadRotationsToNative(rotations, sensorUnitsPerRotation), kTimeoutMs);
+		configForwardSoftLimitThreshold((int) rotationsToNative(rotations, sensorUnitsPerRotation), kTimeoutMs);
+	}
+	
+	public void setReverseSoftLimitRotations(double rotations) {
+		if(feedbackDevice == FeedbackDevice.QuadEncoder)
+			configReverseSoftLimitThreshold((int) quadRotationsToNative(rotations, sensorUnitsPerRotation), kTimeoutMs);
+		configReverseSoftLimitThreshold((int) rotationsToNative(rotations, sensorUnitsPerRotation), kTimeoutMs);
+	}
+	
+	public void enableLimitSwitch(boolean enable) { overrideLimitSwitchesEnable(enable); }
+	public void enableSoftLimit(boolean enable) { overrideSoftLimitsEnable(enable); }
 }

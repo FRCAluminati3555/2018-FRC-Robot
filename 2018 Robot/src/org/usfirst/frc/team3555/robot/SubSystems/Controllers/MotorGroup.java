@@ -69,7 +69,6 @@ public class MotorGroup {
 	 * @param rightSetPoint -> SetPoint for the right side controller
 	 */
 	public void set(double leftSetPoint, double rightSetPoint) {
-		
 		if(!swap) {
 			left.set(leftSetPoint * scaleFactor * invertLeftPoint);
 			right.set(rightSetPoint * scaleFactor * invertRightPoint);
