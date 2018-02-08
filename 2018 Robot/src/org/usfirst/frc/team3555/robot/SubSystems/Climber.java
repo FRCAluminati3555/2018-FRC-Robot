@@ -3,6 +3,9 @@ package org.usfirst.frc.team3555.robot.SubSystems;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CANTalon;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CurvedJoystick;
 
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
+
 public class Climber extends SubSystem {
 	private CurvedJoystick joyOp;
 	private CANTalon climber;
@@ -15,6 +18,11 @@ public class Climber extends SubSystem {
 		this.joyOp = joyOp;
 		
 		climber = new CANTalon(0);
+		
+		climber.setFeedbackDevice(FeedbackDevice.QuadEncoder);
+		climber.setSensorUnitsPerRotation(500);//TODO Get this value from the encoder
+		climber.setReverseLimitSwitchNormal(LimitSwitchNormal.NormallyOpen);//Which one?
+		
 		climber.enable();
 	}
 

@@ -1,7 +1,6 @@
 package org.usfirst.frc.team3555.robot.SubSystems;
 
 import org.usfirst.frc.team3555.robot.Autonomous.Action;
-import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CurvedJoystick;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CurvedXboxController;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.MotorGroup;
 
@@ -15,7 +14,7 @@ public class DriveTrain extends SubSystem {
 	private MotorGroup slaves;//Front 
 	
 	private CurvedXboxController controller;
-	private CurvedJoystick joyLeft, joyRight;
+//	private CurvedJoystick joyLeft, joyRight;
 	
 	//Data
 	private double wheelCircumference; // <- meters
@@ -125,31 +124,31 @@ public class DriveTrain extends SubSystem {
 		mainGroup.set(leftForward + rightTurn, rightForward + leftTurn);
 	}
 	
-	/**
-	 * Control Robot with a single joystick in an arcade fashion
-	 */
-	private void interpretArcadeDrive() {
-		double leftSpeed = 0;
-    	double rightSpeed = 0;
-    	
-    	leftSpeed = joyRight.getCurvedY() + joyRight.getCurvedX();
-    	rightSpeed = -joyRight.getCurvedY() + joyRight.getCurvedX();
-
-    	mainGroup.set(leftSpeed, rightSpeed);
-	}
-	
-	/**
-	 * Control Robot with both joysticks in a tank fashion
-	 */
-	private void interpretTankDrive() {
-		double leftSpeed = 0;
-    	double rightSpeed = 0;
-    	
-    	leftSpeed = joyLeft.getCurvedY();
-		rightSpeed = joyRight.getCurvedY();
-    	
-		mainGroup.set(leftSpeed, rightSpeed);
-	}
+//	/**
+//	 * Control Robot with a single joystick in an arcade fashion
+//	 */
+//	private void interpretArcadeDrive() {
+//		double leftSpeed = 0;
+//    	double rightSpeed = 0;
+//    	
+//    	leftSpeed = joyRight.getCurvedY() + joyRight.getCurvedX();
+//    	rightSpeed = -joyRight.getCurvedY() + joyRight.getCurvedX();
+//
+//    	mainGroup.set(leftSpeed, rightSpeed);
+//	}
+//	
+//	/**
+//	 * Control Robot with both joysticks in a tank fashion
+//	 */
+//	private void interpretTankDrive() {
+//		double leftSpeed = 0;
+//    	double rightSpeed = 0;
+//    	
+//    	leftSpeed = joyLeft.getCurvedY();
+//		rightSpeed = joyRight.getCurvedY();
+//    	
+//		mainGroup.set(leftSpeed, rightSpeed);
+//	}
 	
 	/**
 	 * Swap which direction is forward

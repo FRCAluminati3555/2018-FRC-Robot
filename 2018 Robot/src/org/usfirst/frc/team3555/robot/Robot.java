@@ -34,7 +34,7 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void autonomousPeriodic() {
-//		actions.update();
+		actions.update();
 	}
 
 	@Override

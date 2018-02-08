@@ -1,7 +1,6 @@
 package org.usfirst.frc.team3555.robot.SubSystems;
 
 import org.usfirst.frc.team3555.robot.Autonomous.Action;
-import org.usfirst.frc.team3555.robot.Autonomous.InnerType.ActionStart;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CANTalon;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CurvedJoystick;
 
