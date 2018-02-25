@@ -5,7 +5,7 @@ import org.usfirst.frc.team3555.robot.SubSystems.Handler;
 
 public abstract class AutonomousCondition {
 	public static enum Position {
-		Left(0), Center(1), Right(2);
+		Right(0), RightOfExchange(1), LeftOfExchange(2), Left(3);
 		
 		public static Position getPosition(int value) {
 			for(Position pos : Position.values()) 
@@ -33,14 +33,22 @@ public abstract class AutonomousCondition {
 		Position position = Position.getPosition(handler.getAutoKnob().getValue());
 		
 		if(position == Position.Left)
-			handleLeftCondition();
-		else if(position == Position.Center) 
-			handleCenterCondition();
+			handleLeft();
+		else if(position == Position.LeftOfExchange)
+			handleLeftOfExchange();
 		else if(position == Position.Right)
-			handleRightCondition();
+			handleRight();
+		else if(position == Position.RightOfExchange)
+			handleRightOfExchange();
 	}
 	
-	protected abstract void handleLeftCondition(); 
-	protected abstract void handleCenterCondition(); 
-	protected abstract void handleRightCondition(); 
+	protected void justForward() {
+		actionQueue.add(handler.getDriveTrain().drive(2.6, 3));
+	}
+	
+	protected abstract void handleLeftOfExchange();
+	protected abstract void handleLeft();
+	
+	protected abstract void handleRightOfExchange();
+	protected abstract void handleRight();
 }

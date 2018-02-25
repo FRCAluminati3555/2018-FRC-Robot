@@ -1,6 +1,7 @@
 package org.usfirst.frc.team3555.robot.SubSystems;
 
 import org.usfirst.frc.team3555.robot.Autonomous.Action;
+import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CurvedJoystick;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CurvedXboxController;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.MotorGroup;
 
@@ -8,24 +9,29 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class DriveTrain extends SubSystem {
 	private MotorGroup mainGroup;//Back
 	private MotorGroup slaves;//Front 
 	
 	private CurvedXboxController controller;
-//	private CurvedJoystick joyLeft, joyRight;
+	private CurvedJoystick joyLeft, joyRight;
 	
 	//Data
 	private double wheelCircumference; // <- meters
 	private double wheelRadius; // <- meters
 	private double distanceBetweenWheels; // <- meters
 	
-	public DriveTrain() {
-		//Input init
-		controller = new CurvedXboxController(1);
-//		joyLeft = new CurvedJoystick(2);
-//		joyRight = new CurvedJoystick(3);
+	private boolean arcade;
+	
+	public DriveTrain(Handler handler) {
+		super(handler);
+		
+//		this.controller = handler.getController();
+		
+		joyLeft = new CurvedJoystick(1);
+		joyRight = new CurvedJoystick(2);
 		
 		//Init groups to hold the talons
 		mainGroup = new MotorGroup(43, 44);
@@ -43,12 +49,12 @@ public class DriveTrain extends SubSystem {
 		mainGroup.setSensorUnitsPerRotation(360);
 
 		//Set PID constants
-		mainGroup.setLeftPIDF(.85, 0.01, .2, 0);
-		mainGroup.setRightPIDF(.85, 0.01, .2, 0);
+		mainGroup.setLeftPIDF (.95, 0.007, 0, 0);
+		mainGroup.setRightPIDF(.95, 0.007, 0, 0);
 		
 		//Make sure that the right side has the same positive direction as the left side
 		mainGroup.negateRightSetPoint(true);
-		mainGroup.setScaleFactorMinimum(.3);//Scale factor to slow down the speed when more precise movemnt is desired
+		mainGroup.setScaleFactorMinimum(.3);//Scale factor to slow down the speed when more precise movement is desired
 		
 		//Follow the main group
 		slaves.setControlMode(ControlMode.Follower);
@@ -61,7 +67,12 @@ public class DriveTrain extends SubSystem {
 		//Math Data for auto
 		wheelRadius = 0.0762;
 		wheelCircumference = 2 * Math.PI * wheelRadius;
-		distanceBetweenWheels = .51;
+		distanceBetweenWheels = .61;
+	}
+	
+	public void clear() {
+		mainGroup.set(0);
+		slaves.update();
 	}
 	
 	/**
@@ -69,10 +80,28 @@ public class DriveTrain extends SubSystem {
 	 */
 	@Override
 	public void teleopUpdate() {
-		interpretController();
+//		interpretController();
+		
+		mainGroup.setScaleFactor(((joyRight.getRawZ() * - 1) + 1) / 2.0);
+		
+		if(joyRight.getRawButtonReleased(2)) 
+			swapFront();
+		
+		if(joyRight.getRawButtonPressed(6))
+			arcade = false;
+		else if(joyRight.getRawButtonPressed(7))
+			arcade = true;
+		
+		if(arcade)
+			interpretArcadeDrive();
+		else
+			interpretTankDrive();
 		
 //		mainGroup.update();
 		slaves.update();
+		
+//		SmartDashboard.putNumber("Current Left 1: ", mainGroup.getLeftController().getOutputCurrent());
+//		SmartDashboard.putNumber("Current: ", value)
 	}
 	
 	/**
@@ -84,9 +113,6 @@ public class DriveTrain extends SubSystem {
 		
 		double forward = 0;
 		double backward = 0;
-		
-//		forward = controller.getCurvedTrigger(Hand.kRight);
-//		backward = controller.getCurvedTrigger(Hand.kLeft);
 		
 		forward = controller.getRawTrigger(Hand.kRight);
 		backward = controller.getRawTrigger(Hand.kLeft);
@@ -124,31 +150,33 @@ public class DriveTrain extends SubSystem {
 		mainGroup.set(leftForward + rightTurn, rightForward + leftTurn);
 	}
 	
-//	/**
-//	 * Control Robot with a single joystick in an arcade fashion
-//	 */
-//	private void interpretArcadeDrive() {
-//		double leftSpeed = 0;
-//    	double rightSpeed = 0;
-//    	
-//    	leftSpeed = joyRight.getCurvedY() + joyRight.getCurvedX();
-//    	rightSpeed = -joyRight.getCurvedY() + joyRight.getCurvedX();
-//
-//    	mainGroup.set(leftSpeed, rightSpeed);
-//	}
-//	
-//	/**
-//	 * Control Robot with both joysticks in a tank fashion
-//	 */
-//	private void interpretTankDrive() {
-//		double leftSpeed = 0;
-//    	double rightSpeed = 0;
-//    	
-//    	leftSpeed = joyLeft.getCurvedY();
-//		rightSpeed = joyRight.getCurvedY();
-//    	
-//		mainGroup.set(leftSpeed, rightSpeed);
-//	}
+	/**
+	 * Control Robot with a single joystick in an arcade fashion
+	 */
+	private void interpretArcadeDrive() {
+		double leftSpeed = 0;
+    	double rightSpeed = 0;
+    	
+    	leftSpeed = -joyRight.getCurvedY() + joyRight.getCurvedX();
+    	rightSpeed = joyRight.getCurvedY() + joyRight.getCurvedX();
+    	
+//    	SmartDashboard.putNumber("X: ", joyRight.getCurvedX());
+
+    	mainGroup.set(leftSpeed, -rightSpeed);
+	}
+	
+	/**
+	 * Control Robot with both joysticks in a tank fashion
+	 */
+	private void interpretTankDrive() {
+		double leftSpeed = 0;
+    	double rightSpeed = 0;
+    	
+    	leftSpeed = joyLeft.getCurvedY();
+		rightSpeed = joyRight.getCurvedY();
+    	
+		mainGroup.set(-leftSpeed, -rightSpeed);
+	}
 	
 	/**
 	 * Swap which direction is forward
@@ -162,6 +190,44 @@ public class DriveTrain extends SubSystem {
 	}
 	
 	//***************************** Actions ***********************************//
+	
+	/**
+	 * Change all of the drives to brake mode. 
+	 * This would be called before auto starts to make it more accurate
+	 * 
+	 * @return -> Action generated to change all the drives to brake mode
+	 */
+	public Action setBrake() {
+		return new Action(() -> {
+			mainGroup.getLeftController().setBrake();
+			mainGroup.getRightController().setBrake();
+			slaves.getLeftController().setBrake();
+			slaves.getRightController().setBrake();
+		}, (startTime) -> {
+			return true;
+		}, () -> {
+			
+		});
+	}
+	
+	/**
+	 * Change all of the drives to coast mode. 
+	 * This would be called after auto for user input
+	 * 
+	 * @return -> Action generated to change all the drives to coast mode
+	 */
+	public Action setCoast() {
+		return new Action(() -> { 
+			mainGroup.getLeftController().setCoast();
+			mainGroup.getRightController().setCoast();
+			slaves.getLeftController().setCoast();
+			slaves.getRightController().setCoast();
+		}, (startTime) -> { 
+			return true;
+		}, () -> { 
+			
+		});
+	}
 	
 	/**
 	 * Create an action object to drive the robot at certain rpm on each side for a certain amount of seconds. 
@@ -251,7 +317,7 @@ public class DriveTrain extends SubSystem {
 	 */
 	public Action turnLeftRadians(double radians, double seconds) {
 		double distance = radians * distanceBetweenWheels;
-		return drive(distance, 0, seconds);
+		return drive(0, distance, seconds);
 	}
 
 	/**
@@ -274,7 +340,7 @@ public class DriveTrain extends SubSystem {
 	 */
 	public Action turnLeftOnDimeRadians(double radians, double seconds) {
 		double distance = radians * distanceBetweenWheels;
-		return drive(distance, -distance);
+		return drive(-distance / 1.85, distance / 1.85, seconds);
 	}
 	
 	/**
@@ -297,7 +363,7 @@ public class DriveTrain extends SubSystem {
 	 */
 	public Action turnRightRadians(double radians, double seconds) {
 		double distance = radians * distanceBetweenWheels;
-		return drive(0, distance, seconds);
+		return drive(distance, 0, seconds);
 	}
 	
 	/**
@@ -320,7 +386,7 @@ public class DriveTrain extends SubSystem {
 	 */
 	public Action turnRightOnDimeRadians(double radians, double seconds) {
 		double distance = radians * distanceBetweenWheels;
-		return drive(-distance, distance);
+		return drive(distance / 1.85, -distance / 1.85, seconds);
 	}
 	
 	/**
@@ -330,9 +396,9 @@ public class DriveTrain extends SubSystem {
 	 * @param seconds - Seconds for this action to complete
 	 * @return - Action object to be added to the autonomous queue
 	 */
-	public Action spinRight(double rotations, double seconds) {
-		return turnRightOnDimeDegrees(rotations * 360, seconds);
-	}
+//	public Action spinRight(double rotations, double seconds) {
+//		return turnRightOnDimeDegrees(rotations * 360, seconds);
+//	}
 	
 	/**
 	 * Spins the robot on a dime, rotations in terms of the amount of time to turn the robot 360 degrees (2pi radians)
@@ -341,9 +407,9 @@ public class DriveTrain extends SubSystem {
 	 * @param seconds - Seconds for this action to complete
 	 * @return - Action object to be added to the autonomous queue
 	 */
-	public Action spinLeft(double rotations, double seconds) {
-		return turnLeftOnDimeDegrees(rotations * 360, seconds);
-	}
+//	public Action spinLeft(double rotations, double seconds) {
+//		return turnLeftOnDimeDegrees(rotations * 360, seconds);
+//	}
 	
 	/**
 	 * Drive the robot in terms of wheel rotations

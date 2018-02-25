@@ -3,57 +3,55 @@ package org.usfirst.frc.team3555.robot.SubSystems;
 import org.usfirst.frc.team3555.robot.Autonomous.Action;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CurvedJoystick;
 
-import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class CubeIO extends SubSystem {
 	private CurvedJoystick joystick;
-	private Servo releaseServo;
-	
 	private Talon talonLeft, talonRight;
 	
 	/**
 	 * The intake spins two sets of wheels to pull in the power cube
 	 * Servo used to release the intake at the start of the match
 	 * 
+	 * 14 amp draw
+	 * 
 	 * @param joystick - Operator joystick to use the intake
 	 */
-	public CubeIO(CurvedJoystick joystick) {
-		this.joystick = joystick;
+	public CubeIO(Handler handler) {
+		super(handler);
+		this.joystick = handler.getJoyOp();
 		
-		releaseServo = new Servo(0);//TODO Get channel #
 		talonLeft = new Talon(0);
 		talonRight = new Talon(1);
 	}
 
 	@Override
 	public void teleopUpdate() {
-		if(joystick.getRawButtonReleased(0))//TODO Decide a button for this
-			release();//Does this need to be user input?
-		
 		//Spin the motors with the knob on the bottom of the joystick
-		double speed = joystick.capDeadzone(joystick.getZ() / 2.0, .75);
-		talonLeft.set(speed);//TODO Which is negative?
-		talonRight.set(-speed);
+		double speed = joystick.capDeadzone(joystick.getThrottle() / 2.0, .2);
+		talonLeft.set(-speed);//TODO Which is negative?
+		talonRight.set(speed);
+		
+		SmartDashboard.putNumber("IO Speed: ", speed);
 	}
 	
-	/**
-	 * Generate an action to release the cube wheels with the servo
-	 * @return -> An action that will release the cube wheels
-	 */
-	public Action releaseAction() {
+	public void clear() {
+		talonLeft.set(0);
+		talonRight.set(0);
+	}
+	
+	public Action pushOut(double seconds) {
 		return new Action(() -> {
-			release();//Move to the angle that releases the wheels
+			talonLeft.set(.5);
+			talonRight.set(-.5);
 		}, (startTime) -> {
-			if(System.currentTimeMillis() > startTime + 2000)//Wait until they are down
+			if(System.currentTimeMillis() > startTime + (seconds * 1000))
 				return true;
 			return false;
 		}, () -> {
-			
+			talonLeft.set(0);
+			talonRight.set(0);
 		});
-	}
-	
-	private void release() {
-		releaseServo.set(1);//TODO get the required position
 	}
 }

@@ -54,4 +54,8 @@ public class ActionQueue {
 		Action a = queue.pop();
 		a.cleanUp();
 	}
+	
+	public void clear() {
+		queue.clear();
+	}
 }

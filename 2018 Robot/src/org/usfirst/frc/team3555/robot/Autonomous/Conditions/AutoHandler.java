@@ -6,29 +6,20 @@ import org.usfirst.frc.team3555.robot.SubSystems.Handler;
 import edu.wpi.first.wpilibj.DriverStation;
 
 public class AutoHandler {
-	private LLAuto llAuto;
-	private RRAuto rrAuto;
-	private RLAuto rlAuto;
-	private LRAuto lrAuto;
+	private LAuto lAuto;
+	private RAuto rAuto;
 	
 	public AutoHandler(Handler handler, ActionQueue actionQueue) {
-		llAuto = new LLAuto(handler, actionQueue);
-		rrAuto = new RRAuto(handler, actionQueue);
-		rlAuto = new RLAuto(handler, actionQueue);
-		lrAuto = new LRAuto(handler, actionQueue);
+		lAuto = new LAuto(handler, actionQueue);
+		rAuto = new RAuto(handler, actionQueue);
 	}
 	
 	public void handle() {
-		String gameData = DriverStation.getInstance().getGameSpecificMessage().substring(0, 2);
+		String gameData = DriverStation.getInstance().getGameSpecificMessage().substring(0, 1);
 		
-		if(gameData.equalsIgnoreCase("LR")) {
-			lrAuto.handleCondition();
-		} else if(gameData.equalsIgnoreCase("RL")) {
-			rlAuto.handleCondition();
-		} else if(gameData.equalsIgnoreCase("RR")) {
-			rrAuto.handleCondition();
-		} else if(gameData.equalsIgnoreCase("LL")) {
-			llAuto.handleCondition();
-		}
+		if(gameData.equalsIgnoreCase("L")) 
+			lAuto.handleCondition();
+		else if(gameData.equalsIgnoreCase("R")) 
+			rAuto.handleCondition();
 	}
 }
