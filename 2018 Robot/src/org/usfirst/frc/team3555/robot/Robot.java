@@ -30,6 +30,7 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
+		
 		CameraServer.getInstance().startAutomaticCapture();
 		
 		handler = new Handler();

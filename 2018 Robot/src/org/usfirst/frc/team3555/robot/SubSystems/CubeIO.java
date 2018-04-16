@@ -29,7 +29,7 @@ public class CubeIO extends SubSystem {
 	@Override
 	public void teleopUpdate() {
 		//Spin the motors with the knob on the bottom of the joystick
-		double speed = joystick.capDeadzone(joystick.getThrottle() / 2.0, .2);
+		double speed = joystick.capDeadzone(joystick.getThrottle() / 2.0, .4);
 		talonLeft.set(-speed);//TODO Which is negative?
 		talonRight.set(speed);
 		

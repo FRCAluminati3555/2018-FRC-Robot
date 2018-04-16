@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Lift extends SubSystem {
 	public static enum Positions {
-		Intake(-.5), Switch(-27), Exchange(-4);//, Switch1Box(-26), Switch2Boxes(0);
+		Intake(-.5), Switch(-28), Exchange(-8);//, Switch1Box(-26), Switch2Boxes(0);
 		
 		private double value;
 		private Positions(double value) {

@@ -26,14 +26,25 @@ public class LAuto extends AutonomousCondition {
 		//One Turn 
 		
 		//Forawrd 38 inches (.965 meters)
-		actionQueue.add(handler.getDriveTrain().drive(.95, 2));
+//		actionQueue.add(handler.getDriveTrain().drive(.95, 2));
+//		
+//		actionQueue.add(handler.getDriveTrain().turnRightDegrees(15, .75));
+//		
+//		actionQueue.add(handler.getDriveTrain().drive(1.727, 2));
+//		
+//		
+//		//eject cube
+//		actionQueue.add(handler.getCubeIO().pushOut(3));
 		
-		actionQueue.add(handler.getDriveTrain().turnRightDegrees(15, .75));
+//		Elevator to height
+//		Drag turn 30.39 degrees to the left
+//		Go forward 121 inches forward
+//		Drag turn 30.39 degrees to the right (quick adjustment. Doesn't need to be precise. Just for squaring up to the switch)
+//		Outtake cube
 		
-		actionQueue.add(handler.getDriveTrain().drive(1.727, 2));
-		
-		
-		//eject cube
+		actionQueue.add(handler.getDriveTrain().turnLeftDegrees(30.5, .5));
+		actionQueue.add(handler.getDriveTrain().drive(3.1, 3));
+		actionQueue.add(handler.getDriveTrain().turnRightDegrees(30.5, .5));
 		actionQueue.add(handler.getCubeIO().pushOut(3));
 	}
 

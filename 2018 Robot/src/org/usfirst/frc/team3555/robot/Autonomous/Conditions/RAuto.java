@@ -12,8 +12,18 @@ public class RAuto extends AutonomousCondition {
 
 	@Override
 	protected void handleLeftOfExchange() {
-		//forward 105.2 inches (2.67208 meters)
-		justForward();
+//		//forward 105.2 inches (2.67208 meters)
+//		justForward();
+		
+//		Drag turn 25.71 degrees to the right
+//		Travel 116 inches forward
+//		Drag turn 25.71 degrees to the left (quick adjustment. Doesn't need to be precise. Just for squaring up to the switch)
+//		Outtake cube
+		
+		actionQueue.add(handler.getDriveTrain().turnRightDegrees(26, 1));
+		actionQueue.add(handler.getDriveTrain().drive(2.9, 2.5));
+		actionQueue.add(handler.getDriveTrain().turnLeftDegrees(26, 1));
+		actionQueue.add(handler.getCubeIO().pushOut(3));
 	}
 
 	@Override
