@@ -2,49 +2,30 @@ package org.usfirst.frc.team3555.robot.SubSystems;
 
 import org.usfirst.frc.team3555.robot.Autonomous.Action;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CurvedJoystick;
-import org.usfirst.frc.team3555.robot.SubSystems.Controllers.CurvedXboxController;
 import org.usfirst.frc.team3555.robot.SubSystems.Controllers.MotorGroup;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
-
 public class DriveTrain extends SubSystem {
 	private MotorGroup mainGroup;//Back
 	private MotorGroup slaves;//Front 
 	
-	private CurvedXboxController controller;
-	private CurvedJoystick joyLeft, joyRight;
+	private CurvedJoystick joystick;
 	
 	//Data
 	private double wheelCircumference; // <- meters
 	private double wheelRadius; // <- meters
 	private double distanceBetweenWheels; // <- meters
 	
-	private boolean arcade;
-	
 	public DriveTrain(Handler handler) {
 		super(handler);
 		
-//		this.controller = handler.getController();
-		
-		joyLeft = new CurvedJoystick(1);
-		joyRight = new CurvedJoystick(2);
+		joystick = new CurvedJoystick(1);
 		
 		//Init groups to hold the talons
 		mainGroup = new MotorGroup(43, 44);
 		slaves = new MotorGroup(41, 42);
-		
-		controller = new CurvedXboxController(3, .05);
-		
-//		leftRear = new CANTalon(43);
-//		leftFront = new CANTalon(41); 
-//		
-//		rightRear = new CANTalon(44);
-//		rightFront = new CANTalon(42);
 		
 		mainGroup.setControlMode(ControlMode.PercentOutput);
 		mainGroup.setFeedBackDevice(FeedbackDevice.QuadEncoder);
@@ -80,61 +61,26 @@ public class DriveTrain extends SubSystem {
 		slaves.update();
 	}
 	
+	public MotorGroup getMainGroup() {
+		return mainGroup;
+	}
+
+	public MotorGroup getSlaves() {
+		return slaves;
+	}
+
 	/**
 	 * Interpret the driver input, and make sure the slave drives are up to date with their master controllers
 	 */
 	@Override
 	public void teleopUpdate() {
-		if(joyRight.getRawButtonReleased(2) || controller.getBumperReleased(Hand.kRight)) 
+		if(joystick.getRawButtonReleased(2))// || controller.getBumperReleased(Hand.kRight)) 
 			swapFront();
 		
-		if(joyRight.getRawButtonPressed(6))
-			arcade = false;
-		else if(joyRight.getRawButtonPressed(7))
-			arcade = true;
-		
-		if(arcade)
-			interpretArcadeDrive();
-		else
-			interpretTankDrive();
-		
-		double magnitude = arcade ? interpretArcadeDrive() : interpretTankDrive();
-		
-		if(magnitude == 0)
-			interpretController();
-		else
-			mainGroup.setScaleFactor(((joyRight.getRawZ() * - 1) + 1) / 2.0);
+		interpretArcadeDrive();
+		mainGroup.setScaleFactor(((joystick.getRawZ() * - 1) + 1) / 2.0);
 		
 		slaves.update();
-	}
-	
-	/**
-	 * Interpret the controller input to how it would be in a video game
-	 */
-	private double interpretController() {
-		double leftSpeed = 0;
-    	double rightSpeed = 0;
-    	
-    	if(controller.getAButtonReleased()) 
-    		mainGroup.setScaleFactor(.25);
-    	else if(controller.getBButtonReleased()) 
-    		mainGroup.setScaleFactor(.5);
-    	else if(controller.getYButtonReleased()) 
-    		mainGroup.setScaleFactor(.75);
-    	else if(controller.getXButtonReleased()) 
-    		mainGroup.setScaleFactor(1);
-    	
-    	//Right, left right
-    	//Left, up down
-    	
-    	leftSpeed = -controller.getCurvedY(Hand.kLeft, 2) + controller.getCurvedX(Hand.kRight, 2);
-    	rightSpeed = controller.getCurvedY(Hand.kLeft, 2) + controller.getCurvedX(Hand.kRight, 2);
-    	
-    	SmartDashboard.putNumber("Controller: ", controller.getY(Hand.kLeft));
-    	
-    	mainGroup.set(leftSpeed, -rightSpeed);
-    	
-    	return Math.sqrt(leftSpeed * leftSpeed + rightSpeed * rightSpeed);
 	}
 	
 	/**
@@ -146,28 +92,14 @@ public class DriveTrain extends SubSystem {
 		double leftSpeed = 0;
     	double rightSpeed = 0;
     	
-    	leftSpeed = -joyRight.getCurvedY() + joyRight.getCurvedX();
-    	rightSpeed = joyRight.getCurvedY() + joyRight.getCurvedX();
+    	leftSpeed = -joystick.getCurvedY() + joystick.getCurvedX();
+    	rightSpeed = joystick.getCurvedY() + joystick.getCurvedX();
     	
 //    	SmartDashboard.putNumber("X: ", joyRight.getCurvedX());
 
     	mainGroup.set(leftSpeed, -rightSpeed);
     	
     	return Math.sqrt(leftSpeed * leftSpeed + rightSpeed * rightSpeed);
-	}
-	
-	/**
-	 * Control Robot with both joysticks in a tank fashion
-	 */
-	private double interpretTankDrive() {
-		double leftSpeed = 0;
-    	double rightSpeed = 0;
-    	
-    	leftSpeed = joyLeft.getCurvedY();
-		rightSpeed = joyRight.getCurvedY();
-    	
-		mainGroup.set(-leftSpeed, -rightSpeed);
-		return Math.sqrt(leftSpeed * leftSpeed + rightSpeed * rightSpeed);
 	}
 	
 	/**
@@ -236,29 +168,14 @@ public class DriveTrain extends SubSystem {
 
 			mainGroup.set(speedLeft, speedRight);
 			slaves.update();
-			
-//			leftRear.set(-speedLeft);
-//			rightRear.set(speedRight);
-//			leftFront.set(leftRear.getDeviceID());
-//			rightFront.set(rightRear.getDeviceID());
 		}, (startTime) -> {//Update
 			if(System.currentTimeMillis() >= (seconds * 1000) + startTime)
 				return true;
 			return false;
 		}, () -> {//Clean Up
-//			leftRear.set(0);
-//			rightRear.set(0);
-//			leftFront.set(leftRear.getDeviceID());
-//			rightFront.set(rightRear.getDeviceID());
-			
 			mainGroup.set(0);
 			slaves.update();
 			mainGroup.setControlMode(ControlMode.PercentOutput);
-			
-//			leftRear.setControlMode(ControlMode.PercentOutput);
-//			rightRear.setControlMode(ControlMode.PercentOutput);
-//			leftRear.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-//			rightRear.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
 		});
 	}
 		
@@ -380,28 +297,6 @@ public class DriveTrain extends SubSystem {
 		double distance = radians * distanceBetweenWheels;
 		return drive(distance / 1.85, -distance / 1.85, seconds);
 	}
-	
-	/**
-	 * Spins the robot on a dime, rotations in terms of the amount of time to turn the robot 360 degrees (2pi radians)
-	 * 
-	 * @param rotations - Amount of full spins of the robot
-	 * @param seconds - Seconds for this action to complete
-	 * @return - Action object to be added to the autonomous queue
-	 */
-//	public Action spinRight(double rotations, double seconds) {
-//		return turnRightOnDimeDegrees(rotations * 360, seconds);
-//	}
-	
-	/**
-	 * Spins the robot on a dime, rotations in terms of the amount of time to turn the robot 360 degrees (2pi radians)
-	 * 
-	 * @param rotations - Amount of full spins of the robot
-	 * @param seconds - Seconds for this action to complete
-	 * @return - Action object to be added to the autonomous queue
-	 */
-//	public Action spinLeft(double rotations, double seconds) {
-//		return turnLeftOnDimeDegrees(rotations * 360, seconds);
-//	}
 	
 	/**
 	 * Drive the robot in terms of wheel rotations

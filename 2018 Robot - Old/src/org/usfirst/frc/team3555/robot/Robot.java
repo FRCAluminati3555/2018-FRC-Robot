@@ -79,8 +79,12 @@ public class Robot extends IterativeRobot {
 		
 		//Distribute actions according to the game data
 //		autoHandler.handle();
-		initActions.add(handler.getCubeLift().genPositionAction(Positions.Switch));
+//		initActions.add(handler.getCubeLift().genPositionAction(Positions.Switch));
+		
+		startTime = System.currentTimeMillis();
 	}
+	
+	long startTime;
 	
 	/**
 	 * This method is called periodically when autonomous is enabled.
@@ -90,8 +94,13 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousPeriodic() {
 		//The update method will have the robot execute the top action or move to the next when the current action has been completed
-		actions.update();
-		initActions.update();
+//		actions.update();
+//		initActions.update();
+		
+		if(System.currentTimeMillis() > startTime + 1500)
+			handler.getDriveTrain().getMainGroup().set(0);
+		else 
+			handler.getDriveTrain().getMainGroup().set(.5);
 	}
 
 	/**
