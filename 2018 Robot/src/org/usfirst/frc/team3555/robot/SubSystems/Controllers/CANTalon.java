@@ -140,7 +140,7 @@ public class CANTalon extends WPI_TalonSRX {
 		super(deviceNumber);
 		
 		setControlMode(ControlMode.PercentOutput);
-		setFeedbackDevice(FeedbackDevice.None);
+//		setFeedbackDevice(FeedbackDevice.None);
 		set(0);
 		setPIDF(0);
 		
