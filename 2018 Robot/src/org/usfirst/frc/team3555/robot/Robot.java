@@ -9,11 +9,15 @@ package org.usfirst.frc.team3555.robot;
 
 import org.usfirst.frc.team3555.robot.Autonomous.ActionQueue;
 import org.usfirst.frc.team3555.robot.Autonomous.Conditions.AutoHandler;
+import org.usfirst.frc.team3555.robot.Autonomous.Conditions.AutonomousCondition.Position;
 import org.usfirst.frc.team3555.robot.SubSystems.Handler;
 import org.usfirst.frc.team3555.robot.SubSystems.CubeLift.Positions;
 
 import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * Aluminati 3555
@@ -30,17 +34,20 @@ import edu.wpi.first.wpilibj.IterativeRobot;
  * @author Sam S.
  */
 public class Robot extends IterativeRobot {
+	private static final String LEFT = "Left";
+	private static final String CENTER = "Center";
+	private static final String CROSS_THE_LINE = "Cross The Line";
+	private static final String RIGHT = "Right";
+	
+	private SendableChooser<String> autoChooser = new SendableChooser<>();
+	
 	private AutoHandler autoHandler;//Class that will handle the auto game data and fill up a queue with actions
 	private Handler handler;//Hold references to all subsystems
 	private ActionQueue actions;//Actions that will be executed depending on game data and robot position
 	private ActionQueue initActions;//Actions that initialize the robot's components
 	
-	/** TODO
-	 * Clean Up
-	 * 	- Auto code needs docs and could be more straight forward
-	 *  - Clear out the drive train class of all of the extra methods
-	 *  - Auto Code should work regardless if the game data is null
-	 */
+//	private long startTime;//panick
+	
 	
 	/**
 	 * This method will start the camera stream to the driver station, generate all of the subsystems, and create the queues for autonomous.
@@ -55,6 +62,13 @@ public class Robot extends IterativeRobot {
 		actions = new ActionQueue();//Construct queues
 		initActions = new ActionQueue();
 		autoHandler = new AutoHandler(handler, actions);
+		
+		autoChooser.addDefault(LEFT, LEFT);
+		autoChooser.addObject(CENTER, CENTER);
+		autoChooser.addObject(CROSS_THE_LINE, CROSS_THE_LINE);
+		autoChooser.addObject(RIGHT, RIGHT);
+		
+		SmartDashboard.putData("Robot Location", autoChooser);
 	}
 	
 	/**
@@ -78,13 +92,86 @@ public class Robot extends IterativeRobot {
 		handler.getDriveTrain().clear();
 		
 		//Distribute actions according to the game data
+		String ownership = DriverStation.getInstance().getGameSpecificMessage().substring(0, 1);
+		String selected = autoChooser.getSelected();
+		
+		initActions.add(handler.getCubeLift().genPositionAction(Positions.Switch));
+		
+		if(ownership.equals("L")) {
+			switch(selected) {
+				case LEFT:
+					//153.85 inches forward (3.90779 meters)
+					actions.add(handler.getDriveTrain().drive(3.85, 3));
+					//Turn 90 right on a dime
+					actions.add(handler.getDriveTrain().turnRightOnDimeDegrees(90, 1.5));
+					//Drive forward 54 inches (1.3716 meters)
+					actions.add(handler.getDriveTrain().drive(.5, .75));
+					//Eject cube
+					actions.add(handler.getCubeIO().pushOut(3));
+					
+					break;
+					
+				case RIGHT:
+					actions.add(handler.getDriveTrain().drive(2.6, 3));
+					
+					break;
+					
+				case CROSS_THE_LINE:
+					actions.add(handler.getDriveTrain().drive(2.4, 3));
+					
+					break;
+					
+				case CENTER:
+					actions.add(handler.getDriveTrain().turnLeftDegrees(30.5, .5));
+					actions.add(handler.getDriveTrain().drive(3.1, 3));
+					actions.add(handler.getDriveTrain().turnRightDegrees(30.5, .5));
+					
+					actions.add(handler.getCubeIO().pushOut(3));
+					
+					break;
+			}
+		} else if(ownership.equals("R")) {
+			switch(selected) {
+				case LEFT: 
+					actions.add(handler.getDriveTrain().drive(2.6, 3));
+					
+					break;
+					
+				case RIGHT:
+					//forward 153.85 inches (3.90779 meters)
+					actions.add(handler.getDriveTrain().drive(3.85, 3));
+					//dime 90 left
+					actions.add(handler.getDriveTrain().turnLeftOnDimeDegrees(90, 1.5));
+					//forward 54 inches (1.3716 meters)
+					actions.add(handler.getDriveTrain().drive(.5, .75));
+					//eject cube
+					actions.add(handler.getCubeIO().pushOut(3));
+					
+					break;
+					
+				case CROSS_THE_LINE:
+					actions.add(handler.getDriveTrain().drive(2.6, 3));
+					
+//					actions.add(handler.getCubeIO().pushOut(3));
+					
+					break;
+					
+				case CENTER:
+					actions.add(handler.getDriveTrain().turnRightDegrees(26, 1));
+					actions.add(handler.getDriveTrain().drive(2.9, 2.5));
+					actions.add(handler.getDriveTrain().turnLeftDegrees(26, 1));
+					
+					actions.add(handler.getCubeIO().pushOut(3));
+					
+					break;
+			}
+		}
+		
 //		autoHandler.handle();
 //		initActions.add(handler.getCubeLift().genPositionAction(Positions.Switch));
 		
-		startTime = System.currentTimeMillis();
+//		startTime = System.currentTimeMillis();
 	}
-	
-	long startTime;
 	
 	/**
 	 * This method is called periodically when autonomous is enabled.
@@ -94,13 +181,13 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousPeriodic() {
 		//The update method will have the robot execute the top action or move to the next when the current action has been completed
-//		actions.update();
-//		initActions.update();
+		actions.update();
+		initActions.update();
 		
-		if(System.currentTimeMillis() > startTime + 1500)
-			handler.getDriveTrain().getMainGroup().set(0);
-		else 
-			handler.getDriveTrain().getMainGroup().set(.5);
+//		if(System.currentTimeMillis() > startTime + 1500)
+//			handler.getDriveTrain().getMainGroup().set(0);
+//		else 
+//			handler.getDriveTrain().getMainGroup().set(.5);
 	}
 
 	/**

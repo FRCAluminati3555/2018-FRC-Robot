@@ -92,7 +92,8 @@ public class CubeLift extends SubSystem {
 			
 			SmartDashboard.putNumber("Lift Percent: ", joystick.getY());
 			lift.set(-joystick.capDeadzone(joystick.getY(), .1));
-		} else if(joystick.getRawButtonReleased(12)) //Ask if any of the buttons were just released, if so set the set point to that position
+		} else 
+		if(joystick.getRawButtonReleased(12)) //Ask if any of the buttons were just released, if so set the set point to that position
 			setTarget(Positions.Intake);
 		else if(joystick.getRawButtonReleased(8)) 
 			setTarget(Positions.Switch);
@@ -114,8 +115,12 @@ public class CubeLift extends SubSystem {
 	 * @param position -> Position enumeration that represents the target height of the lift 
 	 */
 	private void setTarget(Positions position) {
-		if(lift.getControlMode() != ControlMode.Position) 
-			lift.setControlMode(ControlMode.Position);
+		if(lift.getControlMode() != ControlMode.MotionMagic) {
+			lift.setControlMode(ControlMode.MotionMagic);
+			
+			lift.configMotionAcceleration(1000);
+			lift.configMotionCruiseVelocity(1);
+		}
 		
 		lift.setPositionDistance(position.getValue());
 	}

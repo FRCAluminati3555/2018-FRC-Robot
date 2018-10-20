@@ -30,11 +30,11 @@ public class DriveTrain extends SubSystem {
 		mainGroup.setControlMode(ControlMode.PercentOutput);
 		mainGroup.setFeedBackDevice(FeedbackDevice.QuadEncoder);
 		
-		mainGroup.setSensorUnitsPerRotation(360);
+		mainGroup.setSensorUnitsPerRotation(1024);
 
 		//Set PID constants
-		mainGroup.setLeftPIDF (.95, 0.007, 0, 0);
-		mainGroup.setRightPIDF(.95, 0.007, 0, 0);
+		mainGroup.setLeftPIDF (.45, 0.001, 0, .45);
+		mainGroup.setRightPIDF(.45, 0.001, 0, .45);
 		
 		//Make sure that the right side has the same positive direction as the left side
 		mainGroup.negateRightSetPoint(true);
@@ -49,6 +49,9 @@ public class DriveTrain extends SubSystem {
 		//Enable the drives
 		mainGroup.setEnabled(true);
 		slaves.setEnabled(true);
+		
+		mainGroup.getLeftController().setSensorPhase(true);
+		mainGroup.getRightController().setSensorPhase(true);
 		
 		//Math Data for auto
 		wheelRadius = 0.0762;
